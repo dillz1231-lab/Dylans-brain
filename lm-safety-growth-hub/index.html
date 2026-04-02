@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LM Safety Growth Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:#f4f5f7}
+.app{display:flex;height:100vh}
+.sidebar{width:220px;min-width:220px;background:#1b2a3b;display:flex;flex-direction:column}
+.sidebar-logo{padding:18px 18px 20px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.logo-mark{width:34px;height:34px;background:#2ecc8a;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:6px}
+.logo-name{color:white;font-size:14px;font-weight:700}.logo-sub{color:rgba(255,255,255,0.3);font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
+.nav{padding:10px 0;flex:1}
+.nav-label{padding:14px 16px 5px;font-size:9px;font-weight:700;color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:.1em}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 16px;color:rgba(255,255,255,0.45);font-size:13px;font-weight:500;cursor:pointer;border-right:3px solid transparent;transition:all .15s}
+.nav-item:hover{color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.05)}
+.nav-item.active{color:#fff;background:rgba(46,204,138,0.15);border-right-color:#2ecc8a}
+.sidebar-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.07)}
+.user-row{display:flex;align-items:center;gap:9px}
+.user-av{width:28px;height:28px;border-radius:50%;background:#2ecc8a;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.user-name{color:rgba(255,255,255,0.7);font-size:12px;font-weight:600}.user-role{color:rgba(255,255,255,0.3);font-size:10px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:white;border-bottom:1px solid #e8eaed;padding:0 22px;height:54px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.topbar-title{font-size:15px;font-weight:600;color:#111827}
+.api-ind{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;cursor:pointer;margin-left:auto}
+.api-ok{background:#d1fae5;color:#065f46}.api-bad{background:#fef2f2;color:#b91c1c}
+.page{display:none;flex:1;overflow-y:auto;padding:22px}.page.active{display:block}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+.page-title{font-size:17px;font-weight:700;color:#111827}.page-sub{font-size:12px;color:#6b7280;margin-top:3px}
+.btn{border:none;border-radius:7px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+.btn-green{background:#2ecc8a;color:white}.btn-green:hover{background:#27b87a}.btn-green:disabled{opacity:.45;cursor:not-allowed}
+.btn-outline{background:white;color:#374151;border:1px solid #e5e7eb}.btn-outline:hover{background:#f9fafb}
+.btn-sm{padding:6px 12px;font-size:12px}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat-card{background:white;border:1px solid #e8eaed;border-radius:10px;padding:14px 16px}
+.stat-n{font-size:24px;font-weight:700;color:#111827}.stat-n.green{color:#2ecc8a}.stat-n.amber{color:#f59e0b}.stat-n.red{color:#ef4444}
+.stat-l{font-size:11px;color:#6b7280;margin-top:2px}
+.filter-panel{background:white;border:1px solid #e8eaed;border-radius:10px;padding:14px 18px;margin-bottom:16px}
+.filter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
+.fg label{display:block;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.fg select,.fg input{width:100%;padding:7px 9px;border:1px solid #e5e7eb;border-radius:7px;font-size:12px;color:#374151;background:#f9fafb;font-family:'Inter',sans-serif;outline:none}
+.fg select:focus,.fg input:focus{border-color:#2ecc8a;background:white}
+.fg-full{grid-column:1/-1}
+.tbl-wrap{background:white;border:1px solid #e8eaed;border-radius:10px;overflow:hidden}
+.tbl-head{display:grid;gap:8px;padding:9px 18px;background:#f9fafb;border-bottom:1px solid #e8eaed;grid-template-columns:2fr .9fr 1.1fr .8fr 90px 70px 28px}
+.th{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.07em}
+.tbl-row{display:grid;gap:8px;padding:12px 18px;border-bottom:1px solid #f3f4f6;align-items:center;cursor:pointer;transition:background .1s;grid-template-columns:2fr .9fr 1.1fr .8fr 90px 70px 28px}
+.tbl-row:last-child{border-bottom:none}.tbl-row:hover{background:#fafafa}
+.lead-name{font-size:13px;font-weight:600;color:#111827}.lead-seg{font-size:11px;color:#9ca3af;margin-top:1px}
+.td{font-size:12px;color:#374151}
+.svc-badge{font-size:10px;font-weight:600;color:#065f46;background:#d1fae5;padding:2px 8px;border-radius:20px;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pri{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;display:inline-flex;align-items:center;gap:4px}
+.pri-1{background:#f3f4f6;color:#6b7280}.pri-2{background:#fef3c7;color:#92400e}.pri-3{background:#fef2f2;color:#b91c1c}
+.chevron{color:#d1d5db;transition:transform .2s;display:flex;align-items:center}.chevron.open{transform:rotate(90deg)}
+.detail-row{display:none;background:#f8fffe;border-bottom:1px solid #a7f3d0;padding:14px 18px}.detail-row.open{display:block}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:10px}
+.dl{font-size:10px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.dv{font-size:12px;color:#065f46;line-height:1.6}
+.htags{display:flex;flex-wrap:wrap;gap:4px}.htag{font-size:10px;background:white;color:#374151;border:1px solid #e5e7eb;padding:2px 7px;border-radius:20px}
+.hook{background:white;border:1px solid #a7f3d0;border-radius:7px;padding:9px 12px;font-size:12px;color:#065f46;font-style:italic;line-height:1.5}
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sec-left{display:flex;align-items:center;gap:8px}.sec-title{font-size:13px;font-weight:600;color:#374151}
+.cnt-badge{background:#f3f4f6;color:#6b7280;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
+.loading-state{padding:40px;text-align:center;color:#6b7280;font-size:13px;display:flex;align-items:center;justify-content:center;gap:10px}
+.empty-state{padding:48px;text-align:center;color:#9ca3af;font-size:13px}.ei{font-size:32px;margin-bottom:8px}
+.error-box{padding:14px 18px;background:#fef2f2;color:#b91c1c;font-size:13px;border-radius:0 0 10px 10px}
+.dot-anim{display:inline-flex;gap:3px}
+.dot-anim span{width:6px;height:6px;border-radius:50%;background:#2ecc8a;display:inline-block;animation:bonce 1.2s infinite}
+.dot-anim span:nth-child(2){animation-delay:.2s}.dot-anim span:nth-child(3){animation-delay:.4s}
+@keyframes bonce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+.clients-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.client-card{background:white;border:1px solid #e8eaed;border-radius:10px;padding:14px 16px;transition:border-color .15s}.client-card:hover{border-color:#2ecc8a}
+.cc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.cc-name{font-size:13px;font-weight:600;color:#111827}.cc-ind{font-size:11px;color:#9ca3af;margin-top:1px}
+.sdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.s-won{background:#2ecc8a}.s-progress{background:#f59e0b}.s-cold{background:#9ca3af}.s-hot{background:#ef4444}
+.cc-detail{font-size:11px;color:#6b7280;line-height:1.6}
+.cc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #f3f4f6}
+.add-card{width:100%;padding:14px;background:#f9fafb;border:2px dashed #e5e7eb;border-radius:10px;color:#9ca3af;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
+.add-card:hover{border-color:#2ecc8a;color:#2ecc8a;background:#f0fdf9}
+.li-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+.post-card{background:white;border:1px solid #e8eaed;border-radius:10px;padding:16px;margin-bottom:12px}
+.post-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.post-av{width:38px;height:38px;border-radius:50%;background:#1b2a3b;color:white;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.post-name{font-size:13px;font-weight:600;color:#111827}.post-ttl{font-size:11px;color:#6b7280}
+.post-body{font-size:13px;color:#374151;line-height:1.7;white-space:pre-wrap;background:#f9fafb;border:1px solid #e5e7eb;border-radius:7px;padding:12px;margin-bottom:12px}
+.post-foot{display:flex;align-items:center;justify-content:space-between}
+.post-tag{font-size:10px;font-weight:600;background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:20px}
+.copy-btn{background:#2ecc8a;color:white;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif}
+.copy-btn:hover{background:#27b87a}.copy-btn.copied{background:#059669}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal{background:white;border-radius:12px;padding:24px;width:480px;max-width:90vw}
+.modal h3{font-size:15px;font-weight:700;color:#111827;margin-bottom:6px}
+.modal-sub{font-size:12px;color:#6b7280;margin-bottom:16px;line-height:1.6}
+.mfg{margin-bottom:12px}
+.mfg label{display:block;font-size:11px;font-weight:600;color:#6b7280;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.mfg input,.mfg select{width:100%;padding:8px 10px;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;color:#374151;background:#f9fafb;font-family:'Inter',sans-serif;outline:none}
+.mfg input:focus,.mfg select:focus{border-color:#2ecc8a;background:white}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      <div class="logo-name">LM Safety</div><div class="logo-sub">Growth Hub</div>
+    </div>
+    <div class="nav">
+      <div class="nav-label">Main</div>
+      <div class="nav-item active" id="nav-leads" onclick="showPage('leads')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Lead Finder</div>
+      <div class="nav-item" id="nav-clients" onclick="showPage('clients')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clients</div>
+      <div class="nav-item" id="nav-linkedin" onclick="showPage('linkedin')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>LinkedIn</div>
+    </div>
+    <div class="sidebar-footer"><div class="user-row"><div class="user-av">DC</div><div><div class="user-name">Dylan Clark</div><div class="user-role">Strategic Growth</div></div></div></div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Lead Finder</div>
+      <div id="apiInd" class="api-ind api-bad" onclick="openApiModal()">
+        <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+        <span id="apiIndText">API key required</span>
+      </div>
+    </div>
+    <div class="page active" id="page-leads">
+      <div class="page-header">
+        <div><div class="page-title">Lead Finder</div><div class="page-sub">12 leads per search — P3 = WorkSafe breach risk, act immediately</div></div>
+        <button class="btn btn-green" id="searchBtn" onclick="runSearch()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Find Leads</button>
+      </div>
+      <div class="filter-panel">
+        <div class="filter-grid">
+          <div class="fg"><label>Industry</label><select id="industry">
+            <option value="Timber and wood processing">Timber / wood processing</option>
+            <option value="Dairy and food manufacturing">Dairy and food</option>
+            <option value="Meat processing">Meat processing</option>
+            <option value="Engineering and fabrication" selected>Engineering and fabrication</option>
+            <option value="Construction">Construction</option>
+            <option value="Automotive and panel shops">Automotive / panel shops</option>
+            <option value="Airports and ports">Airports and ports</option>
+            <option value="Quarries and mining">Quarries and mining</option>
+            <option value="Chemical manufacturing">Chemical manufacturing</option>
+          </select></div>
+          <div class="fg"><label>Region</label><select id="region">
+            <option value="Nationwide NZ">Nationwide</option>
+            <option value="Auckland">Auckland</option>
+            <option value="Waikato Bay of Plenty">Waikato / BOP</option>
+            <option value="Wellington Hutt Valley">Wellington</option>
+            <option value="Canterbury Christchurch">Canterbury</option>
+            <option value="Otago Southland">Otago and Southland</option>
+            <option value="Hawkes Bay Gisborne">Hawkes Bay</option>
+            <option value="Nelson Marlborough">Nelson / Marlborough</option>
+          </select></div>
+          <div class="fg"><label>Service</label><select id="service">
+            <option value="Noise monitoring">Noise monitoring</option>
+            <option value="Dust and silica monitoring">Dust and silica</option>
+            <option value="Welding fume assessment" selected>Welding fume assessment</option>
+            <option value="Wood dust monitoring">Wood dust</option>
+            <option value="Chemical exposure assessment">Chemical exposure</option>
+            <option value="RPE fit testing">RPE fit testing</option>
+            <option value="Air quality and ventilation">Air quality</option>
+            <option value="Full health and safety audit">Full H and S audit</option>
+          </select></div>
+          <div class="fg"><label>Size</label><select id="size">
+            <option value="large 200 plus employees">Large (200+)</option>
+            <option value="medium 50 to 200 employees" selected>Medium (50-200)</option>
+            <option value="any size">Any size</option>
+            <option value="small under 50 employees">Small</option>
+          </select></div>
+          <div class="fg fg-full"><label>Additional context</label><input type="text" id="context" placeholder="e.g. WorkSafe enforcement focus, specific hazard, seasonal angle..."></div>
+        </div>
+      </div>
+      <div class="stats-row" id="leadStats" style="display:none">
+        <div class="stat-card"><div class="stat-n" id="s-total">0</div><div class="stat-l">Prospects found</div></div>
+        <div class="stat-card"><div class="stat-n red" id="s-p3">0</div><div class="stat-l">P3 — Act now</div></div>
+        <div class="stat-card"><div class="stat-n amber" id="s-p2">0</div><div class="stat-l">P2 — Follow up</div></div>
+        <div class="stat-card"><div class="stat-n green" id="s-p1">0</div><div class="stat-l">P1 — Pipeline</div></div>
+      </div>
+      <div id="secHeader" style="display:none" class="sec-header">
+        <div class="sec-left"><span class="sec-title" id="secTitle">Results</span><span class="cnt-badge" id="cntBadge">0</span></div>
+        <button class="btn btn-outline btn-sm" onclick="exportCSV()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export CSV</button>
+      </div>
+      <div class="tbl-wrap" id="leadTable"><div class="empty-state"><div class="ei">&#128269;</div><div>Add your API key then click <strong>Find Leads</strong></div></div></div>
+    </div>
+    <div class="page" id="page-clients">
+      <div class="page-header"><div><div class="page-title">Clients</div><div class="page-sub">Track your OCH pipeline</div></div><button class="btn btn-green" onclick="openAddClient()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Client</button></div>
+      <div class="stats-row"><div class="stat-card"><div class="stat-n green" id="c-won">0</div><div class="stat-l">Won / Active</div></div><div class="stat-card"><div class="stat-n amber" id="c-prog">0</div><div class="stat-l">In Progress</div></div><div class="stat-card"><div class="stat-n" id="c-cold">0</div><div class="stat-l">Cold / Pipeline</div></div><div class="stat-card"><div class="stat-n red" id="c-hot">0</div><div class="stat-l">Hot — Follow up</div></div></div>
+      <div class="clients-grid" id="clientsGrid"><div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;font-size:13px"><div style="font-size:32px;margin-bottom:8px">&#128101;</div>No clients yet. Generate leads and click + Client.</div></div>
+    </div>
+    <div class="page" id="page-linkedin">
+      <div class="page-header"><div><div class="page-title">LinkedIn</div><div class="page-sub">AI-generated authority posts — ready to copy and post</div></div><button class="btn btn-green" id="liBtn" onclick="generatePosts()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Generate Posts</button></div>
+      <div class="filter-panel"><div class="li-grid">
+        <div class="fg"><label>Post type</label><select id="liType"><option value="authority insight">Authority insight</option><option value="WorkSafe compliance alert">WorkSafe compliance alert</option><option value="case study or client win">Case study / win</option><option value="industry education">Industry education</option><option value="cold outreach hook">Cold outreach hook</option></select></div>
+        <div class="fg"><label>Target industry</label><select id="liIndustry"><option value="all industries">All industries</option><option value="timber and wood processing">Timber / wood</option><option value="engineering and fabrication">Engineering / fabrication</option><option value="dairy and food manufacturing">Dairy and food</option><option value="construction">Construction</option><option value="meat processing">Meat processing</option></select></div>
+        <div class="fg"><label>Tone</label><select id="liTone"><option value="expert and direct">Expert and direct</option><option value="educational and helpful">Educational</option><option value="urgent compliance warning">Urgent compliance</option><option value="conversational">Conversational</option></select></div>
+      </div></div>
+      <div id="postsContainer"><div class="empty-state"><div class="ei">&#128240;</div><div>Click <strong>Generate Posts</strong></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- API KEY MODAL -->
+<div class="modal-overlay" id="apiModal" style="display:none" onclick="if(event.target===this)closeApiModal()">
+  <div class="modal">
+    <h3>Anthropic API Key</h3>
+    <div class="modal-sub">Your key is stored only in your browser and never sent anywhere except directly to Anthropic. Get a key at <strong>console.anthropic.com</strong> under API Keys.</div>
+    <div class="mfg"><label>API Key</label><input type="password" id="apiKeyInput" placeholder="sk-ant-..."></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeApiModal()">Cancel</button><button class="btn btn-green" onclick="saveApiKey()">Save Key</button></div>
+  </div>
+</div>
+
+<!-- ADD CLIENT MODAL -->
+<div class="modal-overlay" id="clientModal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal"><h3>Add Client</h3>
+    <div class="mfg"><label>Company name</label><input type="text" id="m-name" placeholder="e.g. Juken NZ Ltd"></div>
+    <div class="mfg"><label>Industry</label><input type="text" id="m-ind" placeholder="e.g. Timber processing"></div>
+    <div class="mfg"><label>Contact name and role</label><input type="text" id="m-contact" placeholder="e.g. Sarah Jones - H and S Manager"></div>
+    <div class="mfg"><label>Status</label><select id="m-status"><option value="cold">Pipeline / Cold</option><option value="progress">In Progress</option><option value="hot">Hot - Follow up</option><option value="won">Won / Active</option></select></div>
+    <div class="mfg"><label>Notes</label><input type="text" id="m-notes" placeholder="e.g. Quoted noise monitoring, follow up Feb"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Cancel</button><button class="btn btn-green" onclick="saveClient()">Save Client</button></div>
+  </div>
+</div>
+
+<script>
+let allLeads = [], clients = JSON.parse(localStorage.getItem('lms_clients')||'[]');
+
+function getKey() { return localStorage.getItem('lms_api_key')||''; }
+
+function updateApiIndicator() {
+  const k = getKey();
+  const el = document.getElementById('apiInd');
+  const txt = document.getElementById('apiIndText');
+  if (k) {
+    el.className = 'api-ind api-ok';
+    txt.textContent = 'API connected';
+  } else {
+    el.className = 'api-ind api-bad';
+    txt.textContent = 'API key required';
+  }
+}
+
+function openApiModal() {
+  document.getElementById('apiKeyInput').value = getKey();
+  document.getElementById('apiModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('apiKeyInput').focus(), 100);
+}
+function closeApiModal() { document.getElementById('apiModal').style.display = 'none'; }
+function saveApiKey() {
+  const k = document.getElementById('apiKeyInput').value.trim();
+  if (!k) return;
+  localStorage.setItem('lms_api_key', k);
+  closeApiModal();
+  updateApiIndicator();
+}
+
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  ['leads','clients','linkedin'].forEach(x => document.getElementById('nav-'+x).classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('nav-'+p).classList.add('active');
+  document.getElementById('topbarTitle').textContent = {leads:'Lead Finder',clients:'Clients',linkedin:'LinkedIn'}[p];
+  if (p === 'clients') renderClients();
+}
+
+async function callAPI(prompt, maxTok) {
+  const key = getKey();
+  if (!key) { openApiModal(); throw new Error('API key required'); }
+
+  // Try direct first, fall back to CORS proxy
+  const body = JSON.stringify({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: maxTok || 2000,
+    messages: [{ role: 'user', content: prompt }]
+  });
+
+  let resp;
+  try {
+    resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01'
+      },
+      body
+    });
+  } catch (e) {
+    // CORS blocked — use proxy
+    resp = await fetch('https://corsproxy.io/?url=https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01'
+      },
+      body
+    });
+  }
+
+  if (!resp.ok) {
+    const e = await resp.json();
+    throw new Error(e.error?.message || 'API error ' + resp.status);
+  }
+
+  const d = await resp.json();
+  let raw = d.content.map(i => i.text||'').join('').trim();
+  raw = raw.replace(/```json/gi,'').replace(/```/g,'').trim();
+  const s = raw.indexOf('['), e2 = raw.lastIndexOf(']');
+  if (s === -1 || e2 === -1) throw new Error('No JSON array in response');
+  let js = raw.slice(s, e2+1);
+  js = js.replace(/[\u2018\u2019]/g,' ').replace(/[\u201C\u201D]/g,'"').replace(/[\u2013\u2014]/g,'-').replace(/&(?!amp;)/g,'and');
+  return JSON.parse(js);
+}
+
+async function runSearch() {
+  const key = getKey();
+  if (!key) { openApiModal(); return; }
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true; btn.textContent = 'Searching...';
+  document.getElementById('leadStats').style.display = 'none';
+  document.getElementById('secHeader').style.display = 'none';
+  document.getElementById('leadTable').innerHTML = '<div class="loading-state"><div class="dot-anim"><span></span><span></span><span></span></div> Finding 12 targets in NZ...</div>';
+  const industry = document.getElementById('industry').value;
+  const region = document.getElementById('region').value;
+  const service = document.getElementById('service').value;
+  const size = document.getElementById('size').value;
+  const ctx = document.getElementById('context').value.trim();
+  const prompt = 'You are a B2B sales researcher for LM Safety NZ occupational hygiene. Return ONLY a JSON array of exactly 12 real NZ company targets. Start with [ end with ]. No other text.\n\nIndustry: '+industry+'\nRegion: '+region+'\nService: '+service+'\nSize: '+size+(ctx?'\nContext: '+ctx:'')+'\n\nPriority (integer only):\n3 = Known WorkSafe breach, enforcement action, or active regulatory investigation. Contact immediately.\n2 = Significant unmonitored exposure risk or compliance gap. Strong sales opportunity.\n1 = Relevant sector, good pipeline target.\n\nASCII only in strings. No apostrophes. No ampersands.\n\n[{"company":"Name","location":"City NZ","industry_segment":"segment","likely_hazards":["h1","h2"],"recommended_service":"service","priority":2,"priority_reason":"specific reason","why_now":"why contact now","contact_role":"title to target","outreach_angle":"sharp hook sentence"}]\n\nReturn only the JSON array.';
+  try {
+    allLeads = await callAPI(prompt, 3000);
+    allLeads.forEach(l => { l.priority = parseInt(l.priority)||1; });
+    const p3=allLeads.filter(l=>l.priority===3).length, p2=allLeads.filter(l=>l.priority===2).length, p1=allLeads.filter(l=>l.priority===1).length;
+    document.getElementById('leadStats').style.display = 'grid';
+    document.getElementById('s-total').textContent = allLeads.length;
+    document.getElementById('s-p3').textContent = p3;
+    document.getElementById('s-p2').textContent = p2;
+    document.getElementById('s-p1').textContent = p1;
+    document.getElementById('secTitle').textContent = industry + ' - ' + region;
+    document.getElementById('cntBadge').textContent = allLeads.length;
+    document.getElementById('secHeader').style.display = 'flex';
+    renderLeads(allLeads);
+  } catch(err) {
+    document.getElementById('leadTable').innerHTML = '<div class="error-box">Error: ' + err.message + '</div>';
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Find Leads';
+}
+
+function priClass(p){return p===3?'pri-3':p===2?'pri-2':'pri-1';}
+function priLabel(p){return p===3?'P3 - Act Now':p===2?'P2 - Follow Up':'P1 - Pipeline';}
+
+function renderLeads(leads) {
+  const t = document.getElementById('leadTable');
+  if (!leads.length) { t.innerHTML='<div class="empty-state">No results.</div>'; return; }
+  const sorted = [...leads].sort((a,b) => b.priority - a.priority);
+  let h = '<div class="tbl-head"><div class="th">Company</div><div class="th">Location</div><div class="th">Service</div><div class="th">Contact</div><div class="th">Priority</div><div class="th">Add</div><div class="th"></div></div>';
+  sorted.forEach((l,i) => {
+    h += '<div class="tbl-row" onclick="toggleLead('+i+')"><div><div class="lead-name">'+l.company+'</div><div class="lead-seg">'+l.industry_segment+'</div></div><div class="td">'+l.location+'</div><div class="td"><span class="svc-badge">'+l.recommended_service+'</span></div><div class="td" style="font-size:11px;color:#6b7280">'+l.contact_role+'</div><div class="td"><span class="pri '+priClass(l.priority)+'">'+priLabel(l.priority)+'</span></div><div class="td"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();addFromLead('+i+')">+ Client</button></div><div class="chevron" id="cv'+i+'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>';
+    h += '<div class="detail-row" id="dr'+i+'"><div class="detail-grid"><div><div class="dl">Priority reason</div><div class="dv">'+(l.priority_reason||'High sector risk')+'</div></div><div><div class="dl">Why now</div><div class="dv">'+l.why_now+'</div></div><div><div class="dl">Hazards</div><div class="htags">'+(l.likely_hazards||[]).map(x=>'<span class="htag">'+x+'</span>').join('')+'</div></div></div><div class="dl" style="margin-top:10px">Outreach hook</div><div class="hook">'+l.outreach_angle+'</div></div>';
+  });
+  t.innerHTML = h;
+}
+
+function toggleLead(i) {
+  const d=document.getElementById('dr'+i), c=document.getElementById('cv'+i), o=d.classList.contains('open');
+  document.querySelectorAll('.detail-row').forEach(x=>x.classList.remove('open'));
+  document.querySelectorAll('[id^="cv"]').forEach(x=>x.classList.remove('open'));
+  if (!o) { d.classList.add('open'); c.classList.add('open'); }
+}
+
+function addFromLead(i) {
+  const l = [...allLeads].sort((a,b)=>b.priority-a.priority)[i];
+  document.getElementById('m-name').value = l.company;
+  document.getElementById('m-ind').value = l.industry_segment;
+  document.getElementById('m-contact').value = l.contact_role;
+  document.getElementById('m-status').value = l.priority===3?'hot':'cold';
+  document.getElementById('m-notes').value = l.outreach_angle;
+  document.getElementById('clientModal').style.display = 'flex';
+}
+
+function exportCSV() {
+  if (!allLeads.length) return;
+  const h = ['Company','Location','Industry','Hazards','Service','Priority','Priority Reason','Why Now','Contact','Hook'];
+  const r = allLeads.map(l=>[l.company,l.location,l.industry_segment,(l.likely_hazards||[]).join('; '),l.recommended_service,l.priority,l.priority_reason,l.why_now,l.contact_role,l.outreach_angle]);
+  const csv = [h,...r].map(row=>row.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = 'lm_safety_leads.csv'; a.click();
+}
+
+function renderClients() {
+  const g = document.getElementById('clientsGrid');
+  document.getElementById('c-won').textContent = clients.filter(c=>c.status==='won').length;
+  document.getElementById('c-prog').textContent = clients.filter(c=>c.status==='progress').length;
+  document.getElementById('c-cold').textContent = clients.filter(c=>c.status==='cold').length;
+  document.getElementById('c-hot').textContent = clients.filter(c=>c.status==='hot').length;
+  if (!clients.length) { g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#9ca3af;font-size:13px"><div style="font-size:32px;margin-bottom:8px">&#128101;</div>No clients yet.</div><div onclick="openAddClient()" class="add-card">+ Add Client</div>'; return; }
+  const sd={won:'s-won',progress:'s-progress',cold:'s-cold',hot:'s-hot'}, sl={won:'Won',progress:'In Progress',cold:'Pipeline',hot:'Hot'}, sc={won:'#2ecc8a',progress:'#f59e0b',cold:'#9ca3af',hot:'#ef4444'};
+  let h = clients.map((c,i)=>'<div class="client-card"><div class="cc-top"><div><div class="cc-name">'+c.name+'</div><div class="cc-ind">'+c.industry+'</div></div><div class="sdot '+sd[c.status]+'"></div></div><div class="cc-detail">'+c.contact+'<br><span style="color:#9ca3af">'+c.notes+'</span></div><div class="cc-footer"><span style="font-size:11px;font-weight:600;color:'+sc[c.status]+'">'+sl[c.status]+'</span><button class="btn btn-outline btn-sm" onclick="removeClient('+i+')">Remove</button></div></div>').join('');
+  h += '<div onclick="openAddClient()" class="add-card">+ Add Client</div>';
+  g.innerHTML = h;
+}
+
+function openAddClient() { document.getElementById('m-name').value=''; document.getElementById('m-ind').value=''; document.getElementById('m-contact').value=''; document.getElementById('m-status').value='cold'; document.getElementById('m-notes').value=''; document.getElementById('clientModal').style.display='flex'; }
+function closeModal() { document.getElementById('clientModal').style.display='none'; }
+function saveClient() {
+  const name = document.getElementById('m-name').value.trim();
+  if (!name) return;
+  clients.push({name, industry:document.getElementById('m-ind').value, contact:document.getElementById('m-contact').value, status:document.getElementById('m-status').value, notes:document.getElementById('m-notes').value});
+  localStorage.setItem('lms_clients', JSON.stringify(clients));
+  closeModal(); renderClients();
+}
+function removeClient(i) { clients.splice(i,1); localStorage.setItem('lms_clients',JSON.stringify(clients)); renderClients(); }
+
+async function generatePosts() {
+  const btn = document.getElementById('liBtn');
+  btn.disabled = true; btn.textContent = 'Generating...';
+  document.getElementById('postsContainer').innerHTML = '<div class="loading-state"><div class="dot-anim"><span></span><span></span><span></span></div> Writing posts...</div>';
+  const type=document.getElementById('liType').value, ind=document.getElementById('liIndustry').value, tone=document.getElementById('liTone').value;
+  const prompt = 'Write 3 LinkedIn posts for Dylan Clark, Strategic Growth Manager at LM Safety NZ occupational hygiene consultancy.\nPost type: '+type+'\nTarget industry: '+ind+'\nTone: '+tone+'\nContext: WorkSafe NZ is targeting manufacturing and wood processing in 2026. All welding fumes are Group 1 carcinogens. Many NZ companies are not monitoring exposures. LM Safety does noise monitoring, wood dust, welding fume, silica, RPE fit testing, chemical exposure, H and S audits nationwide.\nReturn ONLY a JSON array of 3 posts. No other text:\n[{"type":"label","content":"Full post text 150 to 250 words with NZ hashtags at end. No apostrophes.","tags":["tag1","tag2"]}]';
+  try {
+    const posts = await callAPI(prompt, 2000);
+    document.getElementById('postsContainer').innerHTML = posts.map((p,i)=>'<div class="post-card"><div class="post-header"><div class="post-av">DC</div><div><div class="post-name">Dylan Clark</div><div class="post-ttl">Strategic Growth Manager at LM Safety NZ</div></div></div><div class="post-body" id="pb'+i+'">'+(p.content||'').replace(/\\n/g,'\n')+'</div><div class="post-foot"><span class="post-tag">'+p.type+'</span><button class="copy-btn" id="cb'+i+'" onclick="copyPost('+i+')">Copy Post</button></div></div>').join('');
+  } catch(err) {
+    document.getElementById('postsContainer').innerHTML = '<div class="error-box">Error: '+err.message+'</div>';
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Generate Posts';
+}
+
+function copyPost(i) {
+  const text = document.getElementById('pb'+i).innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const b = document.getElementById('cb'+i);
+    b.textContent = 'Copied!'; b.classList.add('copied');
+    setTimeout(() => { b.textContent = 'Copy Post'; b.classList.remove('copied'); }, 2000);
+  });
+}
+
+// Init
+updateApiIndicator();
+</script>
+</body>
+</html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LM Safety — Lead Finder</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f4f5f7;height:100vh;overflow:hidden}
+.app{display:flex;height:100vh}
+.sidebar{width:220px;min-width:220px;background:#1b2a3b;display:flex;flex-direction:column}
+.sidebar-logo{padding:20px 20px 22px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.logo-mark{width:36px;height:36px;background:#2ecc8a;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:7px}
+.logo-name{color:white;font-size:15px;font-weight:600}
+.nav{padding:10px 0;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;color:rgba(255,255,255,0.45);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.nav-item:hover{color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.05)}
+.nav-item.active{color:#fff;background:rgba(46,204,138,0.15);border-right:3px solid #2ecc8a}
+.nav-section{padding:14px 18px 5px;font-size:10px;font-weight:600;color:rgba(255,255,255,0.22);text-transform:uppercase;letter-spacing:.08em}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:white;border-bottom:1px solid #e8eaed;padding:0 24px;height:56px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+.search-wrap{flex:1;max-width:400px;position:relative}
+.search-wrap input{width:100%;padding:8px 12px 8px 36px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;background:#f9fafb;color:#374151;outline:none;font-family:'Inter',sans-serif}
+.search-wrap input:focus{border-color:#2ecc8a;background:white}
+.si{position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.notif-btn{width:32px;height:32px;border-radius:50%;border:1px solid #e5e7eb;background:white;display:flex;align-items:center;justify-content:center;position:relative}
+.notif-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;background:#ef4444;border-radius:50%;border:1.5px solid white}
+.avatar{width:32px;height:32px;border-radius:50%;background:#1b2a3b;color:white;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center}
+.content{flex:1;overflow-y:auto;padding:24px}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+.page-title{font-size:18px;font-weight:600;color:#111827}
+.page-subtitle{font-size:13px;color:#6b7280;margin-top:2px}
+.btn-primary{background:#2ecc8a;color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-primary:hover{background:#27b87a}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.filter-panel{background:white;border:1px solid #e8eaed;border-radius:10px;padding:16px 20px;margin-bottom:20px}
+.filter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+.filter-group label{display:block;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.filter-group select,.filter-group input[type=text]{width:100%;padding:8px 10px;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;color:#374151;background:#f9fafb;font-family:'Inter',sans-serif;outline:none}
+.filter-group select:focus,.filter-group input:focus{border-color:#2ecc8a;background:white}
+.filter-full{grid-column:1/-1}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:white;border:1px solid #e8eaed;border-radius:10px;padding:14px 18px}
+.stat-num{font-size:26px;font-weight:700;color:#111827}
+.stat-num.green{color:#2ecc8a}
+.stat-num.amber{color:#f59e0b}
+.stat-label{font-size:12px;color:#6b7280;margin-top:2px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.section-left{display:flex;align-items:center;gap:8px}
+.section-title{font-size:14px;font-weight:600;color:#374151}
+.count-badge{background:#f3f4f6;color:#6b7280;font-size:12px;font-weight:600;padding:2px 9px;border-radius:20px}
+.btn-export{background:white;color:#374151;border:1px solid #e5e7eb;border-radius:7px;padding:7px 14px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:5px}
+.btn-export:hover{background:#f9fafb}
+.lead-table{background:white;border:1px solid #e8eaed;border-radius:10px;overflow:hidden}
+.lead-table-header{display:grid;grid-template-columns:2fr 1fr 1.3fr 1fr 1fr 28px;padding:10px 20px;background:#f9fafb;border-bottom:1px solid #e8eaed;gap:8px}
+.th{font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em}
+.lead-row{display:grid;grid-template-columns:2fr 1fr 1.3fr 1fr 1fr 28px;padding:13px 20px;border-bottom:1px solid #f3f4f6;align-items:center;cursor:pointer;gap:8px}
+.lead-row:hover{background:#f9fafb}
+.lead-name{font-size:13px;font-weight:600;color:#111827}
+.lead-sub{font-size:12px;color:#9ca3af;margin-top:2px}
+.td{font-size:13px;color:#374151}
+.service-badge{font-size:11px;font-weight:500;color:#065f46;background:#d1fae5;padding:3px 8px;border-radius:20px;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.priority-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;display:inline-block}
+.p-high{background:#fef3c7;color:#92400e}
+.p-med{background:#f3f4f6;color:#6b7280}
+.chevron{color:#d1d5db;transition:transform .2s;display:flex;align-items:center}
+.chevron.open{transform:rotate(90deg)}
+.detail-panel{display:none;background:#f0fdf6;border-bottom:1px solid #a7f3d0;padding:16px 20px}
+.detail-panel.open{display:block}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.detail-label{font-size:11px;font-weight:600;color:#059669;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.detail-value{font-size:13px;color:#065f46;line-height:1.6}
+.hazard-tags{display:flex;flex-wrap:wrap;gap:5px}
+.hazard-tag{font-size:11px;background:white;color:#374151;border:1px solid #e5e7eb;padding:2px 8px;border-radius:20px}
+.hook-box{background:white;border:1px solid #a7f3d0;border-radius:7px;padding:10px 14px;font-size:13px;color:#065f46;font-style:italic;line-height:1.6}
+.loading-state{padding:40px;text-align:center;color:#6b7280;font-size:13px;display:flex;align-items:center;justify-content:center;gap:10px}
+.empty-state{padding:48px;text-align:center;color:#9ca3af;font-size:13px}
+.empty-icon{font-size:36px;margin-bottom:10px}
+.error-box{padding:14px 20px;background:#fef2f2;color:#b91c1c;font-size:13px;border-radius:0 0 10px 10px}
+.dot-anim{display:inline-flex;gap:4px}
+.dot-anim span{width:6px;height:6px;border-radius:50%;background:#2ecc8a;display:inline-block;animation:bounce 1.2s infinite}
+.dot-anim span:nth-child(2){animation-delay:.2s}
+.dot-anim span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      <div class="logo-name">LM Safety</div>
+    </div>
+    <div class="nav">
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Overview</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Sales</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Quotes</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Projects</div>
+      <div class="nav-section">Prospecting</div>
+      <div class="nav-item active"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Lead Finder</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Clients</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Equipments</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg> Internal Lab</div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="search-wrap">
+        <svg class="si" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="topSearch" placeholder="Search leads..." oninput="filterLeads()">
+      </div>
+      <div class="topbar-right">
+        <div class="notif-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><div class="notif-dot"></div></div>
+        <div class="avatar">DC</div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Lead Finder</div>
+          <div class="page-subtitle">AI-powered prospect research for occupational hygiene targets in NZ</div>
+        </div>
+        <button class="btn-primary" id="searchBtn" onclick="runSearch()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Find Leads
+        </button>
+      </div>
+      <div class="filter-panel">
+        <div class="filter-grid">
+          <div class="filter-group">
+            <label>Industry</label>
+            <select id="industry">
+              <option value="Timber and wood processing">Timber / wood processing</option>
+              <option value="Dairy and food manufacturing">Dairy and food manufacturing</option>
+              <option value="Meat processing">Meat processing</option>
+              <option value="Engineering and fabrication" selected>Engineering and fabrication</option>
+              <option value="Construction">Construction</option>
+              <option value="Automotive and panel shops">Automotive and panel shops</option>
+              <option value="Airports and ports">Airports and ports</option>
+              <option value="Quarries and mining">Quarries and mining</option>
+              <option value="Chemical manufacturing">Chemical manufacturing</option>
+              <option value="Printing and packaging">Printing and packaging</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Region</label>
+            <select id="region">
+              <option value="Nationwide NZ">Nationwide</option>
+              <option value="Auckland">Auckland</option>
+              <option value="Waikato Bay of Plenty">Waikato / BOP</option>
+              <option value="Wellington Hutt Valley">Wellington</option>
+              <option value="Canterbury Christchurch">Canterbury</option>
+              <option value="Otago Southland">Otago and Southland</option>
+              <option value="Hawkes Bay Gisborne">Hawkes Bay</option>
+              <option value="Nelson Marlborough">Nelson / Marlborough</option>
+              <option value="Manawatu Whanganui">Manawatu-Whanganui</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Service</label>
+            <select id="service">
+              <option value="Noise monitoring">Noise monitoring</option>
+              <option value="Dust and silica monitoring">Dust and silica</option>
+              <option value="Welding fume assessment" selected>Welding fume assessment</option>
+              <option value="Wood dust monitoring">Wood dust monitoring</option>
+              <option value="Chemical exposure assessment">Chemical exposure</option>
+              <option value="RPE fit testing and training">RPE fit testing</option>
+              <option value="Air quality and ventilation review">Air quality</option>
+              <option value="Full health and safety audit">Full H and S audit</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Company Size</label>
+            <select id="size">
+              <option value="large 200 plus employees">Large (200+)</option>
+              <option value="medium 50 to 200 employees" selected>Medium (50-200)</option>
+              <option value="any size">Any size</option>
+              <option value="small under 50 employees">Small</option>
+            </select>
+          </div>
+          <div class="filter-group filter-full">
+            <label>Additional context (optional)</label>
+            <input type="text" id="context" placeholder="e.g. recent WorkSafe enforcement, stainless steel welding, specific hazard focus...">
+          </div>
+        </div>
+      </div>
+      <div class="stats-row" id="statsRow" style="display:none">
+        <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Prospects found</div></div>
+        <div class="stat-card"><div class="stat-num green" id="statHigh">0</div><div class="stat-label">High priority</div></div>
+        <div class="stat-card"><div class="stat-num amber" id="statMed">0</div><div class="stat-label">Medium priority</div></div>
+      </div>
+      <div id="sectionHeader" style="display:none" class="section-header">
+        <div class="section-left">
+          <span class="section-title" id="sectionTitle">Results</span>
+          <span class="count-badge" id="countBadge">0</span>
+        </div>
+        <button class="btn-export" onclick="exportCSV()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+      </div>
+      <div class="lead-table" id="leadTable">
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <div>Select your filters and click <strong>Find Leads</strong> to generate targets</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+let allLeads = [];
+
+function cleanAndParseJSON(raw) {
+  // Strip markdown fences
+  let str = raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/```\s*$/ig,'').trim();
+  // Find the array bounds
+  const start = str.indexOf('[');
+  const end = str.lastIndexOf(']') + 1;
+  if (start === -1 || end === 0) throw new Error('No JSON array found in API response');
+  str = str.slice(start, end);
+  // Normalise quotes and remove control chars
+  str = str.replace(/[\u2018\u2019\u02BC\u2032]/g, '').replace(/[\u201C\u201D]/g, '"').replace(/[\x00-\x09\x0B\x0C\x0E-\x1F]/g, '');
+  try {
+    return JSON.parse(str);
+  } catch(e) {
+    // Last resort: try to fix unescaped apostrophes inside strings
+    str = str.replace(/([a-zA-Z])'([a-zA-Z])/g, '$1$2');
+    return JSON.parse(str);
+  }
+}
+
+function filterLeads() {
+  const q = document.getElementById('topSearch').value.toLowerCase();
+  const leads = q ? allLeads.filter(l =>
+    (l.company||'').toLowerCase().includes(q) ||
+    (l.location||'').toLowerCase().includes(q) ||
+    (l.recommended_service||'').toLowerCase().includes(q) ||
+    (l.industry_segment||'').toLowerCase().includes(q)
+  ) : allLeads;
+  renderTable(leads);
+  document.getElementById('countBadge').textContent = leads.length;
+}
+
+async function runSearch() {
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="dot-anim"><span></span><span></span><span></span></div>&nbsp;Searching...';
+  document.getElementById('statsRow').style.display = 'none';
+  document.getElementById('sectionHeader').style.display = 'none';
+  document.getElementById('leadTable').innerHTML = '<div class="loading-state"><div class="dot-anim"><span></span><span></span><span></span></div>&nbsp;Finding high-probability targets in NZ...</div>';
+
+  const industry = document.getElementById('industry').value;
+  const region = document.getElementById('region').value;
+  const service = document.getElementById('service').value;
+  const size = document.getElementById('size').value;
+  const ctx = document.getElementById('context').value.trim();
+
+  const prompt = `You are a B2B sales researcher for LM Safety, a New Zealand occupational hygiene consultancy. Generate exactly 8 real NZ companies as high-probability targets.
+
+Industry: ${industry}
+Region: ${region}
+Service: ${service}
+Size: ${size}
+${ctx ? 'Context: ' + ctx : ''}
+
+STRICT OUTPUT RULES:
+1. Output ONLY a raw JSON array. No markdown. No explanation. No code fences.
+2. All JSON strings must use straight double quotes only.
+3. Do NOT use apostrophes or single quotes inside any string values. Rephrase to avoid them completely.
+4. All text must be plain ASCII.
+
+JSON schema (exactly this structure):
+[{"company":"Company Name","location":"City NZ","industry_segment":"segment description","likely_hazards":["hazard one","hazard two"],"recommended_service":"service name","priority":"high","why_now":"reason why this company should be targeted now","contact_role":"Health and Safety Manager","outreach_angle":"one sharp cold email opening hook"}]
+
+Generate 8 entries. Use real well-known NZ companies only.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] })
+    });
+    if (!resp.ok) { const e = await resp.json(); throw new Error(e.error?.message || 'API error ' + resp.status); }
+    const data = await resp.json();
+    const raw = data.content.map(i => i.text || '').join('').trim();
+    allLeads = cleanAndParseJSON(raw);
+    const high = allLeads.filter(l => l.priority === 'high').length;
+    document.getElementById('statsRow').style.display = 'grid';
+    document.getElementById('statTotal').textContent = allLeads.length;
+    document.getElementById('statHigh').textContent = high;
+    document.getElementById('statMed').textContent = allLeads.length - high;
+    document.getElementById('sectionTitle').textContent = industry + ' — ' + region;
+    document.getElementById('countBadge').textContent = allLeads.length;
+    document.getElementById('sectionHeader').style.display = 'flex';
+    renderTable(allLeads);
+  } catch(err) {
+    document.getElementById('leadTable').innerHTML = '<div class="error-box"><strong>Error:</strong> ' + err.message + '<br><small style="opacity:.7">Try clicking Find Leads again — occasionally the AI response needs a retry.</small></div>';
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Find Leads';
+}
+
+function renderTable(leads) {
+  const table = document.getElementById('leadTable');
+  if (!leads.length) { table.innerHTML = '<div class="empty-state">No results match your search.</div>'; return; }
+  let html = '<div class="lead-table-header"><div class="th">Company</div><div class="th">Location</div><div class="th">Service</div><div class="th">Contact</div><div class="th">Priority</div><div class="th"></div></div>';
+  leads.forEach((l, i) => {
+    const hi = l.priority === 'high';
+    html += '<div class="lead-row" onclick="toggle(' + i + ')"><div><div class="lead-name">' + l.company + '</div><div class="lead-sub">' + l.industry_segment + '</div></div><div class="td">' + l.location + '</div><div class="td"><span class="service-badge">' + l.recommended_service + '</span></div><div class="td" style="color:#6b7280;font-size:12px">' + l.contact_role + '</div><div class="td"><span class="priority-badge ' + (hi ? 'p-high' : 'p-med') + '">' + (hi ? '● High' : '○ Medium') + '</span></div><div class="chevron" id="cv' + i + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="detail-panel" id="dp' + i + '"><div class="detail-grid"><div><div class="detail-label">Why target now</div><div class="detail-value">' + l.why_now + '</div></div><div><div class="detail-label">Likely hazards</div><div class="hazard-tags">' + (l.likely_hazards || []).map(function(h){return '<span class="hazard-tag">' + h + '</span>';}).join('') + '</div></div><div style="grid-column:1/-1"><div class="detail-label">Cold outreach hook</div><div class="hook-box">"' + l.outreach_angle + '"</div></div></div></div>';
+  });
+  table.innerHTML = html;
+}
+
+function toggle(i) {
+  const p = document.getElementById('dp' + i), c = document.getElementById('cv' + i), o = p.classList.contains('open');
+  document.querySelectorAll('.detail-panel').forEach(function(x){x.classList.remove('open');});
+  document.querySelectorAll('[id^="cv"]').forEach(function(x){x.classList.remove('open');});
+  if (!o) { p.classList.add('open'); c.classList.add('open'); }
+}
+
+function exportCSV() {
+  if (!allLeads.length) return;
+  const headers = ['Company','Location','Industry','Hazards','Service','Priority','Why Now','Contact Role','Outreach Hook'];
+  const rows = allLeads.map(function(l){return [l.company, l.location, l.industry_segment, (l.likely_hazards||[]).join('; '), l.recommended_service, l.priority, l.why_now, l.contact_role, l.outreach_angle];});
+  const csv = [headers].concat(rows).map(function(r){return r.map(function(v){return '"' + String(v||'').replace(/"/g,'""') + '"';}).join(',');}).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'}));
+  a.download = 'lm_safety_leads.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
