@@ -79,14 +79,6 @@ body{font-family:'Inter',sans-serif;background:#f4f5f7;height:100vh;overflow:hid
 .empty-state{padding:48px;text-align:center;color:#9ca3af;font-size:13px}
 .empty-icon{font-size:36px;margin-bottom:10px}
 .error-box{padding:14px 20px;background:#fef2f2;color:#b91c1c;font-size:13px;border-radius:0 0 10px 10px}
-.api-key-row{display:flex;align-items:center;gap:10px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid #f3f4f6}
-.api-key-row label{font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
-.api-key-row input{flex:1;padding:8px 10px;border:1px solid #e5e7eb;border-radius:7px;font-size:13px;color:#374151;background:#f9fafb;font-family:'Inter',sans-serif;outline:none}
-.api-key-row input:focus{border-color:#2ecc8a;background:white}
-.key-hint{font-size:11px;color:#9ca3af;white-space:nowrap}
-.btn-save-key{background:#1b2a3b;color:white;border:none;border-radius:7px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:background .15s}
-.btn-save-key:hover{background:#2ecc8a}
-.btn-save-key.saved{background:#2ecc8a}
 .dot-anim{display:inline-flex;gap:4px}
 .dot-anim span{width:6px;height:6px;border-radius:50%;background:#2ecc8a;display:inline-block;animation:bounce 1.2s infinite}
 .dot-anim span:nth-child(2){animation-delay:.2s}
@@ -136,12 +128,6 @@ body{font-family:'Inter',sans-serif;background:#f4f5f7;height:100vh;overflow:hid
         </button>
       </div>
       <div class="filter-panel">
-        <div class="api-key-row">
-          <label>Anthropic API Key</label>
-          <input type="password" id="apiKey" placeholder="sk-ant-...">
-          <button class="btn-save-key" id="saveKeyBtn" onclick="saveApiKey()">Save Key</button>
-          <span class="key-hint" id="keyHint">Stored locally in your browser</span>
-        </div>
         <div class="filter-grid">
           <div class="filter-group">
             <label>Industry</label>
@@ -225,34 +211,10 @@ body{font-family:'Inter',sans-serif;background:#f4f5f7;height:100vh;overflow:hid
   </div>
 </div>
 <script>
+// Update this to your Render proxy URL after deploying
+const PROXY_URL = 'https://your-proxy-name.onrender.com';
+
 let allLeads = [];
-
-// Restore saved API key
-window.addEventListener('DOMContentLoaded', function() {
-  const saved = localStorage.getItem('lmsf_api_key');
-  if (saved) {
-    document.getElementById('apiKey').value = saved;
-    document.getElementById('keyHint').textContent = 'Key loaded from saved storage';
-  }
-});
-
-function saveApiKey() {
-  const key = document.getElementById('apiKey').value.trim();
-  if (!key) {
-    document.getElementById('keyHint').textContent = 'Please enter a key first.';
-    return;
-  }
-  localStorage.setItem('lmsf_api_key', key);
-  const btn = document.getElementById('saveKeyBtn');
-  const hint = document.getElementById('keyHint');
-  btn.textContent = 'Saved!';
-  btn.classList.add('saved');
-  hint.textContent = 'Key saved to local storage';
-  setTimeout(function() {
-    btn.textContent = 'Save Key';
-    btn.classList.remove('saved');
-  }, 2000);
-}
 
 function cleanAndParseJSON(raw) {
   // Strip markdown fences
@@ -286,11 +248,6 @@ function filterLeads() {
 }
 
 async function runSearch() {
-  const apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) {
-    document.getElementById('leadTable').innerHTML = '<div class="error-box">Please enter your Anthropic API key above before searching.</div>';
-    return;
-  }
   const btn = document.getElementById('searchBtn');
   btn.disabled = true;
   btn.innerHTML = '<div class="dot-anim"><span></span><span></span><span></span></div>&nbsp;Searching...';
@@ -324,9 +281,9 @@ JSON schema (exactly this structure):
 Generate 8 entries. Use real well-known NZ companies only.`;
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch(PROXY_URL + '/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] })
     });
     if (!resp.ok) { const e = await resp.json(); throw new Error(e.error?.message || 'API error ' + resp.status); }
