@@ -1,4 +1,8 @@
 require('dotenv').config();
+const { ProxyAgent, setGlobalDispatcher } = require('undici');
+if (process.env.GLOBAL_AGENT_HTTP_PROXY) {
+  setGlobalDispatcher(new ProxyAgent(process.env.GLOBAL_AGENT_HTTP_PROXY));
+}
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
