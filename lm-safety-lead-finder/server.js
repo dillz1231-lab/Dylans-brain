@@ -42,4 +42,5 @@ app.post('/api/chat', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`App running at http://localhost:${PORT}`));
+const server = app.listen(PORT, () => console.log(`App running at http://localhost:${PORT}`));
+server.setTimeout(120000); // 2 minute timeout

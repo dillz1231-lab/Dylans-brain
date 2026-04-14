@@ -260,7 +260,7 @@ async function runSearch() {
   const size = document.getElementById('size').value;
   const ctx = document.getElementById('context').value.trim();
 
-  const prompt = `You are a B2B sales researcher for LM Safety, a New Zealand occupational hygiene consultancy. Generate exactly 8 real NZ companies as high-probability targets.
+  const prompt = `You are a B2B sales researcher for LM Safety, a New Zealand occupational hygiene consultancy. Generate exactly 5 real NZ companies as high-probability targets.
 
 Industry: ${industry}
 Region: ${region}
@@ -277,13 +277,13 @@ STRICT OUTPUT RULES:
 JSON schema (exactly this structure):
 [{"company":"Company Name","location":"City NZ","industry_segment":"segment description","likely_hazards":["hazard one","hazard two"],"recommended_service":"service name","priority":"high","why_now":"reason why this company should be targeted now","contact_role":"Health and Safety Manager","outreach_angle":"one sharp cold email opening hook"}]
 
-Generate 8 entries. Use real well-known NZ companies only.`;
+Generate 5 entries. Use real well-known NZ companies only.`;
 
   try {
     const resp = await fetch(PROXY_URL + '/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] })
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 1200, messages: [{ role: 'user', content: prompt }] })
     });
     if (!resp.ok) { const e = await resp.json(); throw new Error(e.error?.message || 'API error ' + resp.status); }
     const data = await resp.json();
